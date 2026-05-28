@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Time Traveler: Bilingual Speed Run</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --primary: #3b82f6;
+            --secondary: #8b5cf6;
+            --gold: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --text: #f8fafc;
+            --timer-color: #f43f5e;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+
+        .game-wrapper {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(30, 41, 59, 0.95);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .level-badge {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .score-badge {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Timer Bar */
+        .timer-container {
+            width: 100%;
+            height: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .timer-fill {
+            height: 100%;
+            background: var(--timer-color);
+            width: 100%;
+            transition: width 1s linear;
+        }
+
+        .timer-text {
+            position: absolute;
+            top: -25px;
+            right: 0;
+            font-weight: bold;
+            color: var(--timer-color);
+            font-size: 0.9rem;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 2px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* Question Area */
+        .question-box {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeIn 0.5s;
+        }
+
+        .question-header {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #94a3b8;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--text);
+            line-height: 1.4;
+        }
+        
+        .question-text span {
+            display: block;
+            font-size: 1.1rem;
+            color: #cbd5e1;
+            font-weight: normal;
+            margin-top: 5px;
+        }
+
+        .bonus-tag {
+            display: inline-block;
+            background: var(--gold);
+            color: #000;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Game Area */
+        .game-area {
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Timeline Mode */
+        .slots-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .slots-container.timeline-mode::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 5%;
+            width: 90%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: -1;
+            transform: translateY(-50%);
+            border-radius: 2px;
+        }
+
+        .slot {
+            width: 110px;
+            height: 150px;
+            border: 2px dashed #475569;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            background: var(--bg-color);
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .slot.highlight {
+            border-color: var(--primary);
+            background: rgba(59, 130, 246, 0.1);
+            transform: scale(1.05);
+        }
+
+        .slot-label {
+            font-size: 0.85rem;
+            background: #334155;
+            color: #e2e8f0;
+            padding: 4px 12px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        .items-pool {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            background: rgba(255,255,255,0.03);
+            padding: 20px;
+            border-radius: 20px;
+            width: 100%;
+            min-height: 120px;
+            transition: opacity 0.3s;
+        }
+
+        .draggable-item {
+            width: 100px;
+            height: 110px;
+            background: white;
+            color: #1e293b;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-align: center;
+            transition: transform 0.2s;
+            padding: 5px;
+            z-index: 10;
+        }
+        
+        .draggable-item .en-text {
+            font-size: 0.7rem;
+            color: #64748b;
+            font-weight: normal;
+            margin-top: 2px;
+        }
+
+        .draggable-item:hover { transform: translateY(-5px); }
+        .draggable-item:active { cursor: grabbing; transform: scale(0.95); }
+        .draggable-item.placed { pointer-events: none; }
+        .draggable-item i { font-size: 2rem; margin-bottom: 5px; color: var(--primary); }
+
+        /* Quiz Mode */
+        .quiz-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 700px;
+        }
+
+        .quiz-btn {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            color: white;
+            padding: 25px;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-align: left;
+        }
+
+        .quiz-btn:hover {
+            border-color: var(--primary);
+            background: rgba(59, 130, 246, 0.1);
+            transform: translateX(5px);
+        }
+
+        .quiz-btn.correct { background: rgba(16, 185, 129, 0.2); border-color: var(--success); }
+        .quiz-btn.wrong { background: rgba(239, 68, 68, 0.2); border-color: var(--danger); }
+        .quiz-btn.disabled { pointer-events: none; opacity: 0.6; }
+
+        /* Controls Area */
+        .controls-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .next-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: none;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+            transition: transform 0.2s;
+        }
+        
+        .next-btn:hover { transform: scale(1.05); }
+
+        .feedback-msg {
+            margin-top: 5px;
+            font-weight: bold;
+            min-height: 24px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        /* Modals */
+        .modal {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.98);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            border-radius: 24px;
+            text-align: center;
+            padding: 30px;
+        }
+
+        /* Instruction Card Style */
+        .instruction-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+            max-width: 700px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .instruction-item {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .instruction-item i {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .instruction-item h3 {
+            margin: 0 0 5px 0;
+            font-size: 1rem;
+            color: var(--gold);
+        }
+
+        .instruction-item p {
+            margin: 0;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            color: #cbd5e1;
+        }
+        
+        .hidden { display: none !important; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        @media (max-width: 600px) {
+            .quiz-grid { grid-template-columns: 1fr; }
+            .slot { width: 45%; margin-bottom: 10px; }
+            .instruction-grid { grid-template-columns: 1fr; }
+            .draggable-item { width: 80px; height: 100px; font-size: 0.7rem; }
+            .draggable-item i { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-wrapper">
+        <div class="header">
+            <div class="level-badge" id="level-display">Level 1/15</div>
+            <div class="score-badge">
+                <i class="fas fa-star"></i>
+                <span id="score-display">0</span>
+            </div>
+        </div>
+
+        <div class="timer-container">
+            <div class="timer-text" id="timer-text">20s</div>
+            <div class="timer-fill" id="timer-fill"></div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+
+        <div class="question-box">
+            <div id="bonus-badge" class="bonus-tag hidden">🔥 BONUS ROUND 🔥</div>
+            <div class="question-header" id="question-type">TIMELINE CHALLENGE</div>
+            <div class="question-text" id="question-text">Loading...</div>
+        </div>
+
+        <div class="game-area" id="game-area"></div>
+
+        <div class="controls-area">
+            <div id="feedback-msg" class="feedback-msg"></div>
+            <button class="next-btn" id="next-btn" onclick="nextLevel()">
+                Next Level / ด่านต่อไป <i class="fas fa-arrow-right" style="margin-left: 5px;"></i>
+            </button>
+        </div>
+
+        <div class="modal" id="start-screen">
+            <i class="fas fa-stopwatch" style="font-size: 4rem; color: var(--timer-color); margin-bottom: 20px;"></i>
+            <h1 style="font-size: 2.5rem; margin: 0 0 10px 0;">Tech Time Traveler</h1>
+            <h2 style="color: var(--primary); font-weight: normal; margin-bottom: 30px;">Bilingual Speed Run ⚡</h2>
+            <p style="margin-bottom: 30px; max-width: 500px; line-height: 1.6;">
+                สวัสดีนักเดินทางข้ามเวลา! ยินดีต้อนรับสู่ภารกิจท้าความเร็ว<br>
+                Welcome, Time Traveler! Are you ready for the challenge?<br>
+            </p>
+            <button class="next-btn" style="display:block;" onclick="showInstructions()">Start Game / เริ่มเกม!</button>
+        </div>
+
+        <div class="modal hidden" id="instruction-screen">
+            <h2 style="color: var(--gold); margin-top: 0;">How to Play / วิธีการเล่น</h2>
+            <div class="instruction-grid">
+                <div class="instruction-item">
+                    <i class="fas fa-mouse-pointer"></i>
+                    <h3>Drag & Drop</h3>
+                    <p>ลากไอเทมไปวางในช่องปี ค.ศ. ให้ถูกต้องตามลำดับ<br>Drag items into the correct year slots.</p>
+                </div>
+                <div class="instruction-item">
+                    <i class="fas fa-clock"></i>
+                    <h3>20 Seconds</h3>
+                    <p>มีเวลาเพียง 20 วินาทีต่อหนึ่งข้อเท่านั้น!<br>You only have 20s per level!</p>
+                </div>
+                <div class="instruction-item">
+                    <i class="fas fa-bolt"></i>
+                    <h3>Fast = High Score</h3>
+                    <p>ยิ่งตอบเร็วยิ่งได้คะแนนโบนัสเยอะ<br>The faster you answer, the higher your bonus score.</p>
+                </div>
+                <div class="instruction-item">
+                    <i class="fas fa-star"></i>
+                    <h3>Bonus Quiz</h3>
+                    <p>ระวังด่านโบนัส! เป็นคำถามเลือกตอบเก็บแต้มคูณสอง<br>Watch out for bonus rounds for 2X points.</p>
+                </div>
+            </div>
+            <button class="next-btn" style="display:block;" onclick="startGame()">I'm Ready! / เริ่มเลย!</button>
+        </div>
+
+        <div class="modal hidden" id="end-screen">
+            <i class="fas fa-trophy" style="font-size: 4rem; color: var(--gold); margin-bottom: 20px;"></i>
+            <h1 style="margin-bottom: 10px;">Game Over! / จบเกม!</h1>
+            <p style="color: #94a3b8;">ยอดเยี่ยมมาก! คุณคือผู้เชี่ยวชาญด้านประวัติศาสตร์เทคโนโลยี</p>
+            <div style="font-size: 4rem; font-weight: bold; color: var(--success); margin: 20px 0;" id="final-score">0</div>
+            <button class="next-btn" style="display:block;" onclick="location.reload()">Play Again / เล่นใหม่</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Game Logic & Pools ---
+        const pools = {
+            tier1: [
+                { type: 'timeline', title: "การทำความสะอาด (Cleaning)", q: "เรียงลำดับเครื่องมือทำความสะอาด <span>Order the cleaning tools</span>", slots: [{ label: "1797", target: "broom" }, { label: "1907", target: "vacuum" }], items: [{ id: "vacuum", name: "เครื่องดูดฝุ่น", en: "Vacuum", icon: "fa-plug" }, { id: "broom", name: "ไม้กวาด", en: "Broom", icon: "fa-broom" }], explain: "เริ่มจากไม้กวาด แล้วพัฒนาเป็นเครื่องดูดฝุ่นเพื่อแก้ปัญหาฝุ่นฟุ้งกระจาย" },
+                { type: 'timeline', title: "การเกษตร (Agriculture)", q: "วิวัฒนาการเครื่องทุ่นแรง <span>Evolution of farming tools</span>", slots: [{ label: "4000 BC", target: "buffalo" }, { label: "1892", target: "tractor" }], items: [{ id: "tractor", name: "รถไถ", en: "Tractor", icon: "fa-tractor" }, { id: "buffalo", name: "กระบือ/วัว", en: "Buffalo/Ox", icon: "fa-paw" }], explain: "เปลี่ยนจากการใช้แรงงานสัตว์มาเป็นเครื่องจักรเพื่อความรวดเร็วและทนทาน" },
+                { type: 'timeline', title: "เสื้อผ้า (Clothing)", q: "การผลิตเครื่องนุ่งห่ม <span>Clothing production</span>", slots: [{ label: "1500", target: "needle" }, { label: "1846", target: "machine" }], items: [{ id: "machine", name: "จักรเย็บผ้า", en: "Sewing Machine", icon: "fa-industry" }, { id: "needle", name: "เข็ม/ด้าย", en: "Needle/Thread", icon: "fa-cut" }], explain: "การใช้จักรเย็บผ้าช่วยให้ผลิตได้เร็วขึ้นและมาตรฐานดีขึ้น" },
+                { type: 'timeline', title: "การสื่อสาร (Communication)", q: "การส่งข่าวสาร <span>Sending news</span>", slots: [{ label: "200 BC", target: "smoke" }, { label: "1837", target: "telegraph" }], items: [{ id: "telegraph", name: "โทรเลข", en: "Telegraph", icon: "fa-broadcast-tower" }, { id: "smoke", name: "ควันไฟ", en: "Smoke Signal", icon: "fa-cloud" }], explain: "สัญญาณควันจำกัดระยะทาง โทรเลขแก้ปัญหาด้วยการส่งสัญญาณไฟฟ้า" },
+                { type: 'timeline', title: "การพิมพ์ (Printing)", q: "อุปกรณ์การพิมพ์ <span>Printing devices</span>", slots: [{ label: "1868", target: "typewriter" }, { label: "1981", target: "pc" }], items: [{ id: "pc", name: "คอมพิวเตอร์", en: "Computer", icon: "fa-desktop" }, { id: "typewriter", name: "พิมพ์ดีด", en: "Typewriter", icon: "fa-keyboard" }], explain: "คอมพิวเตอร์แก้ปัญหาเรื่องการลบ/แก้ไขคำผิดที่ทำได้ยากในพิมพ์ดีด" }
+            ],
+            tier2: [
+                { type: 'timeline', title: "การเก็บข้อมูล (Storage)", q: "เรียงลำดับสื่อบันทึกข้อมูล <span>Order storage media</span>", slots: [{ label: "1980", target: "floppy" }, { label: "1982", target: "cd" }, { label: "2000", target: "flash" }], items: [{ id: "cd", name: "CD", en: "CD", icon: "fa-compact-disc" }, { id: "flash", name: "Flash Drive", en: "Flash Drive", icon: "fa-usb" }, { id: "floppy", name: "Floppy Disk", en: "Floppy Disk", icon: "fa-save" }], explain: "ความจุเพิ่มขึ้น ขนาดเล็กลง และทนทานมากขึ้นตามยุคสมัย" },
+                { type: 'timeline', title: "การนำทาง (Navigation)", q: "วิวัฒนาการการบอกทาง <span>Evolution of navigation</span>", slots: [{ label: "1044", target: "compass" }, { label: "1569", target: "map" }, { label: "1995", target: "gps" }], items: [{ id: "gps", name: "GPS", en: "GPS", icon: "fa-map-marker-alt" }, { id: "compass", name: "เข็มทิศ", en: "Compass", icon: "fa-compass" }, { id: "map", name: "แผนที่", en: "Map", icon: "fa-map" }], explain: "จากดูดาว/เข็มทิศ สู่แผนที่ละเอียด และปัจจุบันคือ GPS นำทาง Real-time" },
+                { type: 'timeline', title: "การถ่ายภาพ (Photography)", q: "บันทึกความทรงจำ <span>Capturing memories</span>", slots: [{ label: "1500", target: "paint" }, { label: "1888", target: "film" }, { label: "1995", target: "digital" }], items: [{ id: "digital", name: "กล้องดิจิทัล", en: "Digital Camera", icon: "fa-camera" }, { id: "paint", name: "ภาพวาด", en: "Painting", icon: "fa-palette" }, { id: "film", name: "กล้องฟิล์ม", en: "Film Camera", icon: "fa-film" }], explain: "จากภาพวาดที่ใช้เวลานาน สู่ฟิล์ม และดิจิทัลที่ดูภาพได้ทันที" },
+                { type: 'timeline', title: "การแพทย์ (Medicine)", q: "การรักษาโรค <span>Treating diseases</span>", slots: [{ label: "3000 BC", target: "herb" }, { label: "1928", target: "pill" }, { label: "2012", target: "gene" }], items: [{ id: "gene", name: "ไบโอเทค", en: "Biotech", icon: "fa-dna" }, { id: "herb", name: "สมุนไพร", en: "Herbs", icon: "fa-leaf" }, { id: "pill", name: "ยาแผนปัจจุบัน", en: "Pills", icon: "fa-pills" }], explain: "พัฒนาจากธรรมชาติ สู่การสังเคราะห์สารเคมี และการตัดต่อพันธุกรรม" },
+                { type: 'timeline', title: "โทรศัพท์ (Phones)", q: "วิวัฒนาการโทรศัพท์ <span>Evolution of phones</span>", slots: [{ label: "1837", target: "tele" }, { label: "1876", target: "home" }, { label: "1973", target: "mobile" }], items: [{ id: "mobile", name: "มือถือ", en: "Mobile", icon: "fa-mobile-alt" }, { id: "tele", name: "โทรเลข", en: "Telegraph", icon: "fa-teletype" }, { id: "home", name: "โทรศัพท์บ้าน", en: "Landline", icon: "fa-phone-alt" }], explain: "พัฒนาจากการส่งรหัส สู่เสียงผ่านสาย และเสียงแบบไร้สาย" },
+                { type: 'timeline', title: "เครื่องครัว (Cooking)", q: "การให้ความร้อน <span>Heating methods</span>", slots: [{ label: "5000 BC", target: "wood" }, { label: "1826", target: "gas" }, { label: "1967", target: "micro" }], items: [{ id: "micro", name: "ไมโครเวฟ", en: "Microwave", icon: "fa-box" }, { id: "wood", name: "เตาถ่าน", en: "Charcoal Stove", icon: "fa-fire" }, { id: "gas", name: "เตาแก๊ส", en: "Gas Stove", icon: "fa-burn" }], explain: "เตาถ่านคุมยาก -> แก๊สสะดวกขึ้น -> ไมโครเวฟใช้คลื่นแม่เหล็กไฟฟ้า" }
+            ],
+            tier3: [
+                { type: 'timeline', title: "การเงิน (Finance)", q: "สื่อกลางการแลกเปลี่ยน <span>Medium of exchange</span>", slots: [{ label: "6000 BC", target: "barter" }, { label: "600 BC", target: "coin" }, { label: "960 AD", target: "paper" }, { label: "2009", target: "crypto" }], items: [{ id: "crypto", name: "คริปโต/แอป", en: "Crypto/App", icon: "fa-wallet" }, { id: "barter", name: "แลกของ", en: "Barter", icon: "fa-handshake" }, { id: "paper", name: "ธนบัตร", en: "Banknote", icon: "fa-money-bill" }, { id: "coin", name: "เหรียญ", en: "Coin", icon: "fa-coins" }], explain: "ระบบแลกเปลี่ยนพัฒนาเพื่อความสะดวกในการพกพาและตรวจสอบมูลค่า" },
+                { type: 'timeline', title: "การเล่นเกม (Gaming)", q: "วิวัฒนาการความบันเทิง <span>Evolution of entertainment</span>", slots: [{ label: "3500 BC", target: "board" }, { label: "1972", target: "arcade" }, { label: "1983", target: "console" }, { label: "2016", target: "vr" }], items: [{ id: "vr", name: "VR/Cloud", en: "VR/Cloud", icon: "fa-vr-cardboard" }, { id: "board", name: "บอร์ดเกม", en: "Board Game", icon: "fa-chess" }, { id: "arcade", name: "ตู้เกม", en: "Arcade", icon: "fa-ghost" }, { id: "console", name: "คอนโซล", en: "Console", icon: "fa-gamepad" }], explain: "จาก Analog สู่ Digital และเข้าสู่โลกเสมือนจริง (Virtual Reality)" },
+                { type: 'timeline', title: "แสงสว่าง (Lighting)", q: "แหล่งกำเนิดแสง <span>Light sources</span>", slots: [{ label: "500 BC", target: "candle" }, { label: "1780", target: "oil" }, { label: "1879", target: "bulb" }, { label: "1962", target: "led" }], items: [{ id: "bulb", name: "หลอดไส้", en: "Bulb", icon: "fa-lightbulb" }, { id: "led", name: "LED", en: "LED", icon: "fa-sun" }, { id: "candle", name: "เทียนไข", en: "Candle", icon: "fa-fire" }, { id: "oil", name: "ตะเกียง", en: "Oil Lamp", icon: "fa-oil-can" }], explain: "พัฒนาประสิทธิภาพการใช้พลังงานและความสว่างที่คงที่มากขึ้น" },
+                { type: 'timeline', title: "ที่อยู่อาศัย (Housing)", q: "วิวัฒนาการบ้าน <span>Evolution of housing</span>", slots: [{ label: "10000 BC", target: "cave" }, { label: "1200", target: "hut" }, { label: "1850", target: "building" }, { label: "2020", target: "smart" }], items: [{ id: "smart", name: "Smart Home", en: "Smart Home", icon: "fa-wifi" }, { id: "cave", name: "ถ้ำ", en: "Cave", icon: "fa-mountain" }, { id: "hut", name: "กระท่อม", en: "Hut", icon: "fa-home" }, { id: "building", name: "ตึกคอนกรีต", en: "Building", icon: "fa-building" }], explain: "จากที่หลบภัยธรรมชาติ สู่โครงสร้างแข็งแรง และระบบอัจฉริยะ" },
+                { type: 'timeline', title: "การขนส่ง (Transport)", q: "การเดินทางของมนุษย์ <span>Human transportation</span>", slots: [{ label: "4000 BC", target: "animal" }, { label: "1804", target: "steam" }, { label: "1886", target: "gas" }, { label: "2010", target: "ev" }], items: [{ id: "steam", name: "รถไฟไอน้ำ", en: "Steam Train", icon: "fa-train" }, { id: "ev", name: "รถไฟฟ้า", en: "EV Car", icon: "fa-charging-station" }, { id: "animal", name: "รถม้า", en: "Carriage", icon: "fa-horse" }, { id: "gas", name: "รถน้ำมัน", en: "Gasoline Car", icon: "fa-car" }], explain: "เปลี่ยนแหล่งพลังงานจากธรรมชาติ -> ไอน้ำ -> น้ำมัน -> ไฟฟ้า" }
+            ],
+            bonus: [
+                { type: 'quiz', isBonus: true, q: "ไม้กวาด -> เครื่องดูดฝุ่น ตรงกับรูปแบบใด?", options: [{ text: "การแก้ปัญหาเดิม (Problem Solving)", correct: true }, { text: "การรวมตัว", correct: false }, { text: "ถอยหลัง", correct: false }, { text: "บังเอิญ", correct: false }], explain: "สร้างขึ้นเพื่อแก้ปัญหาฝุ่นฟุ้งกระจายจากการใช้ไม้กวาด" },
+                { type: 'quiz', isBonus: true, q: "สมาร์ทโฟน (กล้อง+เน็ต+โทร) คือรูปแบบใด?", options: [{ text: "การรวมตัว (Convergence)", correct: true }, { text: "แบบลูกโซ่", correct: false }, { text: "แก้ปัญหาเดิม", correct: false }, { text: "ลดขนาด", correct: false }], explain: "Convergence คือการนำหลายฟังก์ชันมารวมในอุปกรณ์เดียว" },
+                { type: 'quiz', isBonus: true, q: "Flash Drive จุเยอะกว่า CD คือรูปแบบใด?", options: [{ text: "แบบลูกโซ่ (Trajectories)", correct: true }, { text: "การรวมตัว", correct: false }, { text: "แก้ปัญหาเดิม", correct: false }, { text: "แฟชั่น", correct: false }], explain: "เป็นการพัฒนาต่อยอดประสิทธิภาพ (Trajectory) อย่างต่อเนื่อง" },
+                { type: 'quiz', isBonus: true, q: "ปัจจัยใดไม่ใช่แรงขับเคลื่อนเทคโนโลยี (Driving Forces)?", options: [{ text: "ความเบื่อหน่าย", correct: true }, { text: "ความต้องการมนุษย์", correct: false }, { text: "วิทยาศาสตร์", correct: false }, { text: "เศรษฐกิจ", correct: false }], explain: "ปัจจัยหลักคือ Human Needs, Science, และ Competition" }
+            ]
+        };
+
+        let activeLevels = [];
+        let currentLevel = 0;
+        let score = 0;
+        let placedCount = 0;
+        let selectedItem = null;
+        let timerInterval = null;
+        let timeLeft = 20;
+        const maxTime = 20;
+
+        // --- DOM Selectors ---
+        const levelDisplay = document.getElementById('level-display');
+        const scoreDisplay = document.getElementById('score-display');
+        const progressFill = document.getElementById('progress-fill');
+        const questionText = document.getElementById('question-text');
+        const questionType = document.getElementById('question-type');
+        const bonusBadge = document.getElementById('bonus-badge');
+        const gameArea = document.getElementById('game-area');
+        const nextBtn = document.getElementById('next-btn');
+        const feedbackMsg = document.getElementById('feedback-msg');
+        const timerFill = document.getElementById('timer-fill');
+        const timerText = document.getElementById('timer-text');
+
+        // --- Flow Control ---
+        function showInstructions() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('instruction-screen').classList.remove('hidden');
+        }
+
+        function startGame() {
+            document.getElementById('instruction-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.add('hidden');
+            score = 0;
+            scoreDisplay.innerText = 0;
+            activeLevels = generateDailyLevels();
+            loadLevel(0);
+        }
+
+        function generateDailyLevels() {
+            function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+            const t1 = shuffle([...pools.tier1]).slice(0, 4);
+            const t2 = shuffle([...pools.tier2]).slice(0, 4);
+            const t3 = shuffle([...pools.tier3]).slice(0, 4);
+            const b = shuffle([...pools.bonus]).slice(0, 3);
+            let journey = [];
+            journey.push(...t1, b[0], ...t2, b[1], ...t3, b[2]);
+            return journey;
+        }
+
+        function loadLevel(idx) {
+            clearInterval(timerInterval);
+            currentLevel = idx;
+            const levelData = activeLevels[idx];
+            placedCount = 0;
+            selectedItem = null;
+
+            levelDisplay.innerText = `Level ${idx + 1}/${activeLevels.length}`;
+            progressFill.style.width = `${((idx) / activeLevels.length) * 100}%`;
+            questionText.innerHTML = levelData.q; 
+            feedbackMsg.innerText = '';
+            nextBtn.style.display = 'none';
+
+            if (levelData.isBonus) {
+                bonusBadge.classList.remove('hidden');
+                questionType.innerText = "⭐ BONUS QUIZ ⭐";
+                questionType.style.color = "var(--gold)";
+            } else {
+                bonusBadge.classList.add('hidden');
+                questionType.innerText = levelData.title || "TIMELINE CHALLENGE";
+                questionType.style.color = "#94a3b8";
+            }
+
+            gameArea.innerHTML = '';
+            gameArea.style.pointerEvents = "auto"; 
+            if (levelData.type === 'quiz') renderQuiz(levelData);
+            else renderTimeline(levelData);
+            startTimer();
+        }
+
+        // --- Timer System ---
+        function startTimer() {
+            timeLeft = maxTime;
+            updateTimerUI();
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerUI();
+                if (timeLeft <= 0) { clearInterval(timerInterval); handleTimeout(); }
+            }, 1000);
+        }
+
+        function updateTimerUI() {
+            const pct = (timeLeft / maxTime) * 100;
+            timerFill.style.width = `${pct}%`;
+            timerText.innerText = `${timeLeft}s`;
+            timerFill.style.backgroundColor = timeLeft <= 5 ? '#ef4444' : '#f43f5e';
+        }
+
+        function handleTimeout() {
+            gameArea.style.pointerEvents = "none";
+            feedbackMsg.innerHTML = `<span style="color:var(--danger)">Time's up! / หมดเวลา! ⏰</span>`;
+            const btns = document.querySelectorAll('.quiz-btn');
+            btns.forEach(b => b.classList.add('disabled'));
+            nextBtn.style.display = 'inline-block';
+            const poolDiv = document.querySelector('.items-pool');
+            if (poolDiv) poolDiv.style.display = 'none';
+        }
+
+        // --- Rendering ---
+        function renderQuiz(data) {
+            const grid = document.createElement('div');
+            grid.className = 'quiz-grid';
+            const shuffled = [...data.options].sort(() => Math.random() - 0.5);
+            shuffled.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'quiz-btn';
+                btn.innerHTML = `<i class="far fa-circle"></i> ${opt.text}`;
+                btn.onclick = () => handleQuizAnswer(btn, opt.correct, data.explain);
+                grid.appendChild(btn);
+            });
+            gameArea.appendChild(grid);
+        }
+
+        function renderTimeline(data) {
+            const slotsDiv = document.createElement('div');
+            slotsDiv.className = 'slots-container timeline-mode';
+            data.slots.forEach(slotData => {
+                const slot = document.createElement('div');
+                slot.className = 'slot';
+                slot.dataset.target = slotData.target;
+                slot.innerHTML = `<div class="slot-label">${slotData.label}</div>`;
+                slot.addEventListener('dragover', e => { e.preventDefault(); slot.classList.add('highlight'); });
+                slot.addEventListener('dragleave', () => slot.classList.remove('highlight'));
+                slot.addEventListener('drop', e => handleDrop(e, slot));
+                slot.addEventListener('click', () => handleSlotClick(slot));
+                slotsDiv.appendChild(slot);
+            });
+            const poolDiv = document.createElement('div');
+            poolDiv.className = 'items-pool';
+            const shuffled = [...data.items].sort(() => Math.random() - 0.5);
+            shuffled.forEach(itemData => {
+                const item = document.createElement('div');
+                item.className = 'draggable-item';
+                item.draggable = true;
+                item.dataset.id = itemData.id;
+                item.innerHTML = `<i class="fas ${itemData.icon}"></i> ${itemData.name}${itemData.en ? `<div class="en-text">${itemData.en}</div>` : ''}`;
+                item.addEventListener('dragstart', e => { e.dataTransfer.setData('text', itemData.id); selectedItem = null; });
+                item.addEventListener('click', (e) => handleItemClick(e, item));
+                poolDiv.appendChild(item);
+            });
+            gameArea.appendChild(slotsDiv);
+            gameArea.appendChild(poolDiv);
+        }
+
+        // --- Event Handlers ---
+        function handleQuizAnswer(btn, isCorrect, explain) {
+            clearInterval(timerInterval);
+            document.querySelectorAll('.quiz-btn').forEach(b => b.classList.add('disabled'));
+            if (isCorrect) {
+                btn.classList.add('correct');
+                const points = 100 + (timeLeft * 5);
+                score += points;
+                feedbackMsg.innerHTML = `<span style="color:var(--success)">Correct! +${points} pts</span><br><span style="font-size:0.9rem">${explain}</span>`;
+            } else {
+                btn.classList.add('wrong');
+                feedbackMsg.innerHTML = `<span style="color:var(--danger)">Wrong! / ผิดครับ! ${explain}</span>`;
+            }
+            updateScore();
+            nextBtn.style.display = 'inline-block';
+        }
+
+        function handleItemClick(e, item) {
+            if (item.classList.contains('placed')) return;
+            document.querySelectorAll('.draggable-item').forEach(i => i.style.border = 'none');
+            if (selectedItem === item) selectedItem = null;
+            else { selectedItem = item; item.style.border = '2px solid var(--primary)'; }
+            e.stopPropagation();
+        }
+
+        function handleSlotClick(slot) { if (selectedItem && slot.children.length <= 1) checkPlacement(selectedItem, slot); }
+        function handleDrop(e, slot) {
+            e.preventDefault();
+            slot.classList.remove('highlight');
+            const id = e.dataTransfer.getData('text');
+            const item = document.querySelector(`.draggable-item[data-id="${id}"]`);
+            if (item && slot.children.length <= 1) checkPlacement(item, slot);
+        }
+
+        function checkPlacement(item, slot) {
+            const target = slot.dataset.target;
+            const levelData = activeLevels[currentLevel];
+            if (target === item.dataset.id) {
+                slot.appendChild(item);
+                item.classList.add('placed');
+                item.style.border = 'none';
+                item.style.backgroundColor = '#dcfce7';
+                item.draggable = false;
+                placedCount++;
+                selectedItem = null;
+                if (placedCount === levelData.slots.length) {
+                    clearInterval(timerInterval);
+                    const points = 50 + Math.ceil(timeLeft * 2.5);
+                    score += points;
+                    feedbackMsg.innerHTML = `<span style="color:var(--success)">Great! / เยี่ยมมาก! +${points} pts</span>`;
+                    nextBtn.style.display = 'inline-block';
+                    document.querySelector('.items-pool').style.display = 'none';
+                }
+            } else {
+                feedbackMsg.innerHTML = `<span style="color:var(--danger)">Wrong slot / ผิดช่องครับ!</span>`;
+                item.style.animation = "pulse 0.2s 2";
+                setTimeout(() => item.style.animation = "", 400);
+            }
+            updateScore();
+        }
+
+        function updateScore() { scoreDisplay.innerText = score; }
+        function nextLevel() {
+            if (currentLevel < activeLevels.length - 1) loadLevel(currentLevel + 1);
+            else { document.getElementById('final-score').innerText = score; document.getElementById('end-screen').classList.remove('hidden'); }
+        }
+    </script>
+</body>
+</html>
